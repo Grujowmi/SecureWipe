@@ -1,0 +1,41 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Environnements virtuels ──
+.venv/
+venv/
+env/
+
+# ── SecureWipe — fichiers générés ──
+# Certificats PDF et logs produits par l'outil
+logs/*.pdf
+logs/*.log
+logs/*.txt
+*.pdf
+*.log
+
+# Compteur séquentiel local (propre à chaque machine)
+.securewipe_counter
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDEs ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Divers ──
+*.img
+*.bak
