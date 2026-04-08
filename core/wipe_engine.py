@@ -619,6 +619,7 @@ def _verify_wipe(
     disk_size: int,
     verify_pct: int,
     expect_zeros: bool,
+    gui_verify_cb=None,
 ) -> tuple[bool, str]:
     """
     Lit un échantillon aléatoire de secteurs et vérifie qu'ils sont
@@ -646,7 +647,7 @@ def _verify_wipe(
             all_zeros_count = 0
             non_zeros_count = 0
 
-            for offset in offsets:
+            for idx_v, offset in enumerate(offsets):
                 os.lseek(fd, offset, os.SEEK_SET)
                 data = os.read(fd, BLOCK_SIZE)
                 if not data:
@@ -656,6 +657,8 @@ def _verify_wipe(
                     all_zeros_count += 1
                 else:
                     non_zeros_count += 1
+                if gui_verify_cb:
+                    gui_verify_cb(idx_v + 1, len(offsets))
         finally:
             os.close(fd)
 
@@ -683,15 +686,17 @@ def _verify_wipe(
 # ──────────────────────────────────────────────
 
 def run_wipe(
-    disk,                       # DiskInfo Linux ou Windows
+    disk,
     mode: WipeMode,
     custom_passes: int = 3,
     verify_pct: int = 10,
     crypto_profile: Optional[CryptoProfile] = None,
+    gui_progress_cb: Optional[Callable] = None,
 ) -> WipeResult:
     """
     Exécute l'effacement complet d'un disque.
-    Gère l'affichage de la progression et retourne un WipeResult.
+    gui_progress_cb(bytes_done, total_bytes, elapsed_sec) : callback GUI optionnel.
+    Si fourni, bypasse la barre Rich terminal pour envoyer la progression au GUI.
     """
     is_linux   = sys.platform != "win32"
     is_windows = sys.platform == "win32"
@@ -822,41 +827,70 @@ def run_wipe(
                 result.standard = f"Custom ({custom_passes} passes)"
                 result.method_detail = f"{custom_passes} passes (alternance zéros/aléatoire)"
 
-            total_bytes = size_bytes * len(passes)
+            total_bytes   = size_bytes * len(passes)
             total_written = 0
 
-            with _make_progress() as progress:
-                task = progress.add_task(
-                    t("wipe_progress_label"),
-                    total=total_bytes,
-                )
+            # Compteur cumulatif pour le callback GUI
+            # Utilise une liste pour être modifiable dans la closure
+            _gui_written = [0]
 
+            def _make_gui_cb():
+                """Callback GUI : accumule les octets écrits à travers toutes les passes."""
+                def cb(n):
+                    _gui_written[0] += n
+                    gui_progress_cb(
+                        _gui_written[0], total_bytes,
+                        time.time() - start_time
+                    )
+                return cb
+
+            if gui_progress_cb:
+                # Mode GUI : progression via callback cumulatif
                 for i, use_random in enumerate(passes, 1):
-                    def cb(n, _task=task):
-                        progress.advance(_task, n)
-
+                    cb = _make_gui_cb()
+                    letters = getattr(disk, "drive_letters", []) or getattr(disk, "mountpoints", [])
                     if is_linux:
                         ok, written, err = _write_pass_linux(
-                            device, size_bytes, i, len(passes), use_random, cb
-                        )
+                            device, size_bytes, i, len(passes), use_random, cb)
                     else:
-                        # Windows : ecriture directe via CreateFile API
-                        # Demonte les volumes avant ecriture (fix code 5 acces refuse)
-                        letters = getattr(disk, "drive_letters", []) or                                   getattr(disk, "mountpoints", [])
                         ok, written, err = _write_pass_windows(
                             device, size_bytes, i, len(passes), use_random, cb,
-                            drive_letters=letters,
-                        )
-
+                            drive_letters=letters)
                     total_written += written
                     if not ok:
                         result.status    = WipeStatus.FAILED
                         result.error_msg = err
-                        rprint(f"  {t('wipe_failed', error=err)}")
                         result.bytes_written = total_written
                         result.passes_done   = i - 1
                         result.duration_sec  = time.time() - start_time
                         return result
+            else:
+                # Mode CLI : Rich progress bar
+                with _make_progress() as progress:
+                    task = progress.add_task(t("wipe_progress_label"), total=total_bytes)
+
+                    for i, use_random in enumerate(passes, 1):
+                        def cb(n, _task=task):
+                            progress.advance(_task, n)
+
+                        letters = getattr(disk, "drive_letters", []) or getattr(disk, "mountpoints", [])
+                        if is_linux:
+                            ok, written, err = _write_pass_linux(
+                                device, size_bytes, i, len(passes), use_random, cb)
+                        else:
+                            ok, written, err = _write_pass_windows(
+                                device, size_bytes, i, len(passes), use_random, cb,
+                                drive_letters=letters)
+
+                        total_written += written
+                        if not ok:
+                            result.status    = WipeStatus.FAILED
+                            result.error_msg = err
+                            rprint(f"  {t('wipe_failed', error=err)}")
+                            result.bytes_written = total_written
+                            result.passes_done   = i - 1
+                            result.duration_sec  = time.time() - start_time
+                            return result
 
             result.bytes_written = total_written
             result.passes_done   = len(passes)
@@ -872,9 +906,19 @@ def run_wipe(
                 expect_zeros = (mode == WipeMode.ANSSI_P1) or \
                                (mode == WipeMode.CUSTOM and not passes[-1])
 
-                with _make_progress() as progress:
-                    progress.add_task(t("wipe_verify_label"), total=None)
-                    ok_v, detail = _verify_wipe(device, size_bytes, verify_pct, expect_zeros)
+                if gui_progress_cb:
+                    # Adapte le callback vérif : (done_blk, total_blk) → gui_progress_cb(done, total, elapsed)
+                    # On réutilise l'interface existing en passant done=blk, total=total_blk, elapsed=0
+                    def _verif_adapter(done_blk, total_blk):
+                        gui_progress_cb(done_blk, total_blk, 0)
+                    ok_v, detail = _verify_wipe(
+                        device, size_bytes, verify_pct, expect_zeros,
+                        gui_verify_cb=_verif_adapter,
+                    )
+                else:
+                    with _make_progress() as progress:
+                        progress.add_task(t("wipe_verify_label"), total=None)
+                        ok_v, detail = _verify_wipe(device, size_bytes, verify_pct, expect_zeros)
 
                 result.verify_pct = verify_pct
                 result.verify_ok  = ok_v

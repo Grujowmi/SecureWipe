@@ -132,5 +132,12 @@
   "confirm_vol_isolated": "Seuls ces volumes sont affectés — vos autres disques restent intacts.",
   "wipe_vol_locked_fail": "Volumes non verrouillables : {letters}",
   "wipe_vol_close_hint": "Fermez les fichiers ouverts sur ces volumes si l'écriture échoue.",
-  "wipe_access_denied": "Accès refusé (code 5) sur {device}.\n  → Fermez tous les fichiers ouverts sur : {letters}\n  → Ou déconnectez le volume via Gestion des disques."
+  "wipe_access_denied": "Accès refusé (code 5) sur {device}.\n  → Fermez tous les fichiers ouverts sur : {letters}\n  → Ou déconnectez le volume via Gestion des disques.",
+  "nav_back": "Précédent",
+  "nav_next": "Suivant",
+  "nav_wipe": "EFFACER",
+  "step1_label": "Opérateur",
+  "step2_label": "Disque",
+  "step3_label": "Méthode",
+  "step4_label": "Effacement"
 }

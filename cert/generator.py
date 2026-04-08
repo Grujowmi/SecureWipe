@@ -160,7 +160,7 @@ class _CertCanvas(canvas.Canvas):
         self.setFillColor(COLOR_MID_GREY)
         self.setFont("Helvetica", 7)
         self.drawString(1*cm, 0.7*cm,
-            f"{self._report_id}  |  SecureWipe v1.1.0  |  GPL v3")
+            f"{self._report_id}  |  SecureWipe v2.0.0  |  GPL v3")
         self.drawRightString(w - 1*cm, 0.7*cm,
             f"Page {self._page_num}")
         self.restoreState()
@@ -506,7 +506,7 @@ def generate_certificate(
     story.append(Spacer(1, 0.2*cm))
     story.append(Paragraph(cert_text, st["footer_note"]))
     story.append(Paragraph(
-        f"Généré par SecureWipe v1.1.0 — {ts.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Généré par SecureWipe v2.0.0 — {ts.strftime('%Y-%m-%d %H:%M:%S')}",
         st["footer_note"],
     ))
 
@@ -524,7 +524,7 @@ def generate_certificate(
         title=f"SecureWipe — {t('report_title_main')} — {report_id}",
         author="Grujowmi <grujowmi@proton.me>",
         subject=f"Effacement sécurisé {disk.serial}",
-        creator="SecureWipe v1.1.0 by Grujowmi — GPL v3",
+        creator="SecureWipe v2.0.0 by Grujowmi — GPL v3",
     )
     doc.build(story, canvasmaker=make_canvas)
 

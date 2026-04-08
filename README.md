@@ -10,7 +10,7 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey.svg)]()
 [![Standard](https://img.shields.io/badge/Standard-ANSSI%20%7C%20NIST%20SP%20800--88-green.svg)]()
-[![Version](https://img.shields.io/badge/Version-v1.1.0-orange.svg)]()
+[![Version](https://img.shields.io/badge/Version-v2.0.0-orange.svg)]()
 
 </div>
 
@@ -54,6 +54,9 @@ Conforme **ANSSI Palier 1/2** et **NIST SP 800-88 Rev.2**. Licence **GPL v3**.
 
 - Python 3.10+
 - Linux ou Windows 10/11
+- Dépendances Python (voir `requirements.txt`) :
+  - `rich`, `reportlab`, `qrcode[pil]`, `Pillow`, `psutil`
+  - `customtkinter` — requis pour l'interface graphique (GUI)
 
 ---
 
@@ -85,14 +88,20 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 #### Linux
 
 ```bash
-# Lancement standard
+# Lancement (choix GUI ou CLI au démarrage)
 sudo python3 securewipe.py
 
-# Mode test - fichier image comme faux disque (WSL, VM, etc.)
+# Forcer le GUI
+sudo python3 securewipe.py --gui
+
+# Forcer le mode terminal
+sudo python3 securewipe.py --cli
+
+# Mode test — fichier image comme faux disque (WSL, VM, etc.)
 dd if=/dev/urandom of=/tmp/testdisk.img bs=1M count=200
 sudo python3 securewipe.py --test-disk /tmp/testdisk.img
 
-# Mode mock - disques fictifs pour tester l'interface
+# Mode mock — disques fictifs pour tester l'interface
 sudo python3 securewipe.py --mock
 
 # Aide
@@ -103,7 +112,14 @@ python3 securewipe.py --help
 
 ```powershell
 # Depuis PowerShell en tant qu'Administrateur
+# (choix GUI ou CLI au démarrage)
 python securewipe.py
+
+# Forcer le GUI
+python securewipe.py --gui
+
+# Forcer le mode terminal
+python securewipe.py --cli
 
 # Mode mock
 python securewipe.py --mock
@@ -151,6 +167,10 @@ SecureWipe/
 ```
 
 ---
+
+---
+
+> *Pensé par l'homme, développé par l'homme, aidé par l'IA.*
 
 ### Licence
 
@@ -200,6 +220,9 @@ Compliant with **ANSSI Level 1/2** and **NIST SP 800-88 Rev.2**. Licensed under 
 
 - Python 3.10+
 - Linux or Windows 10/11
+- Python dependencies (see `requirements.txt`) :
+  - `rich`, `reportlab`, `qrcode[pil]`, `Pillow`, `psutil`
+  - `customtkinter` — required for the graphical interface (GUI)
 
 ---
 
@@ -231,14 +254,20 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 #### Linux
 
 ```bash
-# Standard launch
+# Launch (choose GUI or CLI at startup)
 sudo python3 securewipe.py
 
-# Test mode - use a file image as a fake disk (WSL, VM, etc.)
+# Force GUI
+sudo python3 securewipe.py --gui
+
+# Force terminal mode
+sudo python3 securewipe.py --cli
+
+# Test mode — use a file image as a fake disk (WSL, VM, etc.)
 dd if=/dev/urandom of=/tmp/testdisk.img bs=1M count=200
 sudo python3 securewipe.py --test-disk /tmp/testdisk.img
 
-# Mock mode - fictional disks to test the UI
+# Mock mode — fictional disks to test the UI
 sudo python3 securewipe.py --mock
 
 # Help
@@ -249,7 +278,14 @@ python3 securewipe.py --help
 
 ```powershell
 # From PowerShell as Administrator
+# (choose GUI or CLI at startup)
 python securewipe.py
+
+# Force GUI
+python securewipe.py --gui
+
+# Force terminal mode
+python securewipe.py --cli
 
 # Mock mode
 python securewipe.py --mock
@@ -271,6 +307,10 @@ python securewipe.py --mock
 > SecureWipe automatically blocks these methods and only offers firmware-level or crypto erase options.
 
 ---
+
+---
+
+> *Thought by a human, developed by a human, assisted by AI.*
 
 ### License
 

@@ -4,7 +4,7 @@ All notable changes to SecureWipe are documented here.
 
 ---
 
-## [v1.1.0] — 2026-03-29
+## [v2.0.0] — 2026-03-29
 
 ### Added
 - `--test-disk FILE` CLI argument : inject a file as a fake disk for testing (Linux/WSL)
@@ -41,7 +41,7 @@ All notable changes to SecureWipe are documented here.
 
 ---
 
-## [v1.0.0] — 2026-03-28
+## [v2.0.0] — 2026-03-28
 
 ### Initial Release
 - Bilingual interface FR/EN with automatic locale detection

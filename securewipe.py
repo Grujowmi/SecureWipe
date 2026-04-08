@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SecureWipe v1.1.0
+SecureWipe v2.0.0
 Outil open source d'effacement sécurisé de supports de stockage.
 Conforme ANSSI Palier 1/2 et NIST SP 800-88 Rev.2.
 
@@ -219,6 +219,16 @@ Exemples :
         """
     )
     parser.add_argument(
+        "--cli",
+        action="store_true",
+        help="Force le mode terminal (pas de GUI).",
+    )
+    parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Force le mode graphique (CustomTkinter).",
+    )
+    parser.add_argument(
         "--test-disk",
         metavar="FICHIER",
         help="Utilise un fichier image comme faux disque (mode test Linux/WSL). "
@@ -232,15 +242,58 @@ Exemples :
     return parser.parse_args()
 
 
+def _gui_available() -> bool:
+    """Vérifie si CustomTkinter est disponible et qu'un display existe."""
+    try:
+        import customtkinter
+        if IS_LINUX and not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+            return False
+        return True
+    except ImportError:
+        return False
+
+
+def _ask_mode() -> str:
+    """Demande à l'utilisateur GUI ou CLI au lancement."""
+    console.print()
+    rprint("  [bold cyan]SecureWipe v2.0.0[/bold cyan]")
+    console.print()
+    rprint("  [bold]1.[/bold]  Interface graphique (GUI)")
+    rprint("  [bold]2.[/bold]  Interface terminal  (CLI)")
+    console.print()
+    from rich.prompt import Prompt
+    choice = Prompt.ask("  Mode", choices=["1","2"], default="1").strip()
+    return "gui" if choice == "1" else "cli"
+
+
 def main():
     args = _parse_args()
 
     # Injecte les arguments dans les variables d'environnement
-    # pour que disk_linux.py et disk_windows.py les lisent
     if args.test_disk:
         os.environ["SECUREWIPE_DEV"] = args.test_disk
     if args.mock:
         os.environ["SECUREWIPE_MOCK"] = "1"
+
+    # Détermine le mode
+    if getattr(args, "gui", False):
+        mode = "gui"
+    elif getattr(args, "cli", False):
+        mode = "cli"
+    elif _gui_available():
+        mode = _ask_mode()
+    else:
+        mode = "cli"
+        console.print()
+        rprint("  [dim]GUI non disponible (CustomTkinter absent ou pas de display) — mode terminal.[/dim]")
+
+    if mode == "gui":
+        # Détecte la langue système
+        from core.i18n import _detect_system_lang
+        lang = _detect_system_lang()
+        from gui.app import run_gui
+        run_gui(lang=lang)
+        return
 
     try:
         # 1. Vérification OS

@@ -132,5 +132,12 @@
   "confirm_vol_isolated": "Only these volumes are affected — your other disks remain untouched.",
   "wipe_vol_locked_fail": "Volumes that could not be locked: {letters}",
   "wipe_vol_close_hint": "Close open files on these volumes if the write fails.",
-  "wipe_access_denied": "Access denied (code 5) on {device}.\n  → Close all open files on: {letters}\n  → Or disconnect the volume via Disk Management."
+  "wipe_access_denied": "Access denied (code 5) on {device}.\n  → Close all open files on: {letters}\n  → Or disconnect the volume via Disk Management.",
+  "nav_back": "Previous",
+  "nav_next": "Next",
+  "nav_wipe": "WIPE",
+  "step1_label": "Operator",
+  "step2_label": "Disk",
+  "step3_label": "Method",
+  "step4_label": "Wipe"
 }
